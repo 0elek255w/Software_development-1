@@ -1,0 +1,11 @@
+*
+!FoodOrderingSystem
+!FoodOrderingSystem/**
+FoodOrderingSystem/bin
+FoodOrderingSystem/obj
+!PostgreSQL
+!PostgreSQL/**
+PostgreSQL/bin
+PostgreSQL/obj
+!.gitignore
+!README.md
