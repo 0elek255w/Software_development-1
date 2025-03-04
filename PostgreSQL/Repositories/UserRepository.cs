@@ -27,12 +27,15 @@ namespace PostgreSQL.Repositories
             return users;
         }
 
-        public UserEntity Get(Guid ID)
+        public UserEntity? Get(string email, string password)
         {
             UserEntity user = this._DbContext.Users
                 .AsNoTracking()
-                .Where(user => user.ID == ID)
+                .Where(user => user.Email == email)
                 .First();
+
+            if (user.Password != password)
+                return null;
 
             return user;
         }
@@ -45,24 +48,31 @@ namespace PostgreSQL.Repositories
             return user.ID;
         }
 
-        public Guid Update(Guid ID, string name)
+        public string Update(string email, string name)
         {
             this._DbContext.Users
-                .Where(user => user.ID == ID)
+                .Where(user => user.Email == email)
                 .ExecuteUpdate(user => user
                     .SetProperty(user => user.Name, user => name)
                 );
 
-            return ID;
+            return email;
         }
 
-        public Guid Delete(Guid ID)
+        public bool Delete(string email, string password)
         {
+            UserEntity userToDelete = this._DbContext.Users
+                .Where(user => user.Email == email)
+                .First();
+
+            if (userToDelete.Password != password)
+                return false;
+
             this._DbContext.Users
-                .Where(book => book.ID == ID)
+                .Where(user => (user.ID == userToDelete.ID))
                 .ExecuteDelete();
 
-            return ID;
+            return true;
         }
     }
 }
