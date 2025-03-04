@@ -11,9 +11,9 @@ namespace PostgreSQL
             ;
         }
 
-        public DbSet<UserEntity> UserEntity { get; set; }
-        public DbSet<DishEntity> DishEntity { get; set; }
-        public DbSet<OrderEntity> OrderEntity { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<DishEntity> Dishes { get; set; }
+        public DbSet<OrderEntity> Orders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

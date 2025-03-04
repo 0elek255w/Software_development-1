@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
+using System.Diagnostics.Eventing.Reader;
 
 namespace FoodOrderingSystem.Controllers;
 
@@ -15,16 +16,11 @@ public class UserController : ControllerBase
         this.DbUser = user;
     }
 
-    [HttpGet("/user/get")]
-    public IEnumerable<UserEntity> Get()
+    [HttpGet]
+    public ActionResult<List<UserEntity>> Get()
     {
-        return this.DbUser.AllUserReturn();
-    }
+        List<UserEntity> users = this.DbUser.Get();
 
-    [HttpPost("/user/add")]
-    public IActionResult Post(UserEntity user)
-    {
-        this.DbUser.AddUser(user);
-        return Ok();
+        return Ok(users);
     }
 }
