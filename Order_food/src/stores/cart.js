@@ -1,28 +1,49 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
 
-export const useCartStore = defineStore('cart', {
+export const useCartStore = defineStore("cart", {
   state: () => ({
-    items: [], // Товары в корзине
+    cartItems: JSON.parse(localStorage.getItem("cart")) || [],
   }),
+
   actions: {
-    addToCart(item) {
-      const existingItem = this.items.find(i => i.id === item.id);
-      if (existingItem) {
-        existingItem.quantity++;
+    addToCart(product) {
+      const item = this.cartItems.find((i) => i.id === product.id);
+      if (item) {
+        item.quantity += 1;
       } else {
-        this.items.push({ ...item, quantity: 1 });
+        this.cartItems.push({ ...product, quantity: 1 });
       }
+      this.saveCart();
     },
-    removeFromCart(item) {
-      this.items = this.items.filter(i => i.id !== item.id);
+
+    removeFromCart(productId) {
+      this.cartItems = this.cartItems.filter((item) => item.id !== productId);
+      this.saveCart();
     },
+
     clearCart() {
-      this.items = [];
+      this.cartItems = [];
+      this.saveCart();
     },
-  },
-  getters: {
-    cartTotal: (state) => {
-      return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+    increaseQuantity(productId) {
+      const item = this.cartItems.find((i) => i.id === productId);
+      if (item) {
+        item.quantity += 1;
+      }
+      this.saveCart();
+    },
+
+    decreaseQuantity(productId) {
+      const item = this.cartItems.find((i) => i.id === productId);
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+      }
+      this.saveCart();
+    },
+
+    saveCart() {
+      localStorage.setItem("cart", JSON.stringify(this.cartItems));
     },
   },
 });

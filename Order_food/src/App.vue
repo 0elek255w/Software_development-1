@@ -1,18 +1,14 @@
 <template>
-   <div id="app">
+  <div id="app">
     <header>
       <div class="header-container">
-        <!-- Заголовок сайта -->
         <h1>Сервис заказа еды</h1>
-
-        <!-- Аватарка -->
         <div class="profile-container" @click="openModal">
           <img src="@/assets/user-avatar.png" alt="Профиль" class="profile-icon" />
         </div>
       </div>
     </header>
 
-    <!-- Навигация -->
     <nav>
       <router-link to="/">Главная</router-link>
       <router-link to="/menu">Меню</router-link>
@@ -23,29 +19,39 @@
     <footer>
       <p>© 2025 Сервис заказа еды</p>
     </footer>
-       <!-- Модальное окно для входа -->
-       <div v-if="isModalOpen" class="modal">
+
+    <div v-if="isModalOpen" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
-        <h2>Вход на сайт</h2>
-        <p>Подарим подарок на день рождения, сохраним адрес доставки и расскажем об акциях</p>
-        <input type="tel" placeholder="Номер телефона" v-model="phoneNumber" />
-        <button @click="login">Войти</button>
-        <p class="privacy">
-          Продолжая, вы соглашаетесь со сбором и обработкой персональных данных и <a href="#">пользовательским соглашением</a>
+        <h2>{{ isRegister ? 'Регистрация' : 'Вход' }}</h2>
+        <p v-if="isRegister">Создайте аккаунт, чтобы заказывать еду быстрее</p>
+        <p v-else>Войдите, чтобы оформить заказ</p>
+
+        <input type="email" placeholder="Email" v-model="email" />
+        <input type="password" placeholder="Пароль" v-model="password" />
+
+        <button @click="isRegister ? register() : login()">
+          {{ isRegister ? 'Зарегистрироваться' : 'Войти' }}
+        </button>
+
+        <p class="toggle-auth" @click="toggleAuthMode">
+          {{ isRegister ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться' }}
         </p>
-        </div>
       </div>
+    </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
-  name: "App",
   data() {
     return {
-      isModalOpen: false, // Открыто ли модальное окно
-      phoneNumber: "", // Поле для номера телефона
+      isModalOpen: false,
+      isLoginMode: true, // Режим: вход или регистрация
+      email: "",
+      password: "",
     };
   },
   methods: {
@@ -55,23 +61,59 @@ export default {
     closeModal() {
       this.isModalOpen = false;
     },
-    login() {
-      alert(`Вход с номером: ${this.phoneNumber}`);
-      this.isModalOpen = false;
+    toggleAuthMode() {
+      this.isRegister = !this.isRegister;
     },
-  },
-};
+    async login() {
+      try {
+        const response = await axios.get(`https://localhost:7147/User/${this.email}?password=${this.password}`);
+        alert(`Вход успешен: ${response.data.message}`);
+        this.isModalOpen = false;
+      } catch (error) {
+        alert(`Ошибка: ${error.response ? error.response.data.message : error.message}`);
+      }
+    },
+    async register() {
+      try {
+        const response = await axios.post(`https://localhost:7147/User/${this.email}?password=${this.password}`);
+        alert(`Регистрация успешна: ${response.data.message}`);
+        this.isModalOpen = false;
+      } catch (error) {
+        alert(`Ошибка: ${error.response ? error.response.data.message : error.message}`);
+      }
+    },
+  }
+}
+;
+
+
+
 </script>
 
 <style>
-/* Контейнер для аватарки */
+nav {
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+}
+
+nav a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+nav a.router-link-active {
+  color: #ff5733;
+}
+
 .header-container {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Заголовок влево, аватар вправо */
+  justify-content: space-between;
 }
 
-/* Аватарка */
 .profile-icon {
   width: 40px;
   height: 40px;
@@ -80,7 +122,6 @@ export default {
   border: 2px solid #007bff;
 }
 
-/* Стили для модального окна */
 .modal {
   position: fixed;
   top: 0;
@@ -93,7 +134,6 @@ export default {
   justify-content: center;
 }
 
-/* Контент модального окна */
 .modal-content {
   background: white;
   padding: 20px;
@@ -102,7 +142,6 @@ export default {
   width: 300px;
 }
 
-/* Кнопка закрытия */
 .close {
   position: absolute;
   top: 10px;
@@ -111,7 +150,6 @@ export default {
   cursor: pointer;
 }
 
-/* Поле ввода */
 input {
   width: 100%;
   padding: 8px;
@@ -120,7 +158,6 @@ input {
   border-radius: 5px;
 }
 
-/* Кнопка входа */
 button {
   background: #007bff;
   color: white;
@@ -131,15 +168,9 @@ button {
   width: 100%;
 }
 
-/* Стили для соглашения */
-.privacy {
-  font-size: 12px;
-  color: #666;
-  margin-top: 10px;
-}
-
-.privacy a {
+.toggle-auth {
   color: #007bff;
-  text-decoration: none;
+  cursor: pointer;
+  margin-top: 10px;
 }
 </style>

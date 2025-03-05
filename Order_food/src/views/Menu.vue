@@ -1,44 +1,48 @@
 <template>
-  <div class="container mt-4">
-    <h1 class="text-center mb-4">Меню</h1>
-
-    <div class="row">
-      <div class="col-md-4" v-for="item in menuItems" :key="item.id">
-        <div class="card">
-          <img :src="item.image" class="card-img-top" :alt="item.name">
-          <div class="card-body text-center">
-            <h5 class="card-title">{{ item.name }}</h5>
-            <p class="card-text">{{ item.price }} ₽</p>
-            <button class="btn btn-primary" @click="addToCart(item)">В корзину</button>
-          </div>
-        </div>
-      </div>
+  <div class="menu">
+    <div v-for="product in products" :key="product.id" class="card">
+      <img :src="product.image" :alt="product.name" />
+      <h3>{{ product.name }}</h3>
+      <p>{{ product.price }} ₽</p>
+      <button @click="addToCart(product)">Добавить в корзину</button>
     </div>
   </div>
 </template>
 
 <script>
+import { useCartStore } from "@/stores/cart";
+import { ref } from "vue";
+
 export default {
-  data() {
-    return {
-      menuItems: [
-        { id: 1, name: "Пепперони", price: 599, image: "pizza.jpg" },
-        { id: 2, name: "Калифорния", price: 499, image: "sushi.jpg" },
-        { id: 3, name: "Кола", price: 149, image: "cola.jpg" },
-      ],
+  setup() {
+    const cartStore = useCartStore();
+
+    const products = ref([
+      { id: 1, name: "Пицца Маргарита", price: 500, image: "маргарита.jpg" },
+      { id: 2, name: "Пицца Пепперони", price: 600, image: "пепперони.jpg" },
+    ]);
+
+    const addToCart = (product) => {
+      cartStore.addToCart(product);
     };
-  },
-  methods: {
-    addToCart(item) {
-      console.log(`Добавлено в корзину: ${item.name}`);
-    },
+
+    return { products, addToCart };
   },
 };
 </script>
 
 <style scoped>
-.card img {
-  height: 200px;
-  object-fit: cover;
+.card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+button {
+  background: #ff5733;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
 }
 </style>
