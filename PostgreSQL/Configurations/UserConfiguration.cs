@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PostgreSQL.Tables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PostgreSQL.Configurations
 {
@@ -14,6 +9,10 @@ namespace PostgreSQL.Configurations
         public void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder.HasKey(user => user.ID);
+
+            builder
+                .HasIndex(user => user.Email)
+                .IsUnique();
 
             builder
                 .HasMany(user => user.Orders)

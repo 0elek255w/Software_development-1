@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
-using System.Diagnostics.Eventing.Reader;
 
 namespace FoodOrderingSystem.Controllers;
 
@@ -25,18 +24,18 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{email}")]
-    public ActionResult<Guid> Get(string email, string password)
+    public ActionResult<UserEntity> Get(string email, string password)
     {
-        UserEntity? user = this.DbUser.Get(email, password);
+        UserEntity? user = this.DbUser.Get(email, password, out string errorMessage);
 
         if (user == null)
-            return Forbid();
+            return BadRequest(errorMessage); // replace with Forbid()
 
         return Ok(user);
     }
 
     [HttpPost]
-    public ActionResult<Guid> Create(
+    public ActionResult<bool> Create(
         [FromForm] string name,
         [FromForm] string email,
         [FromForm] string password
@@ -53,17 +52,23 @@ public class UserController : ControllerBase
 
         // check if UserEntity.Type is valid
 
-        Guid userID = this.DbUser.Create(user);
+        bool isValid = this.DbUser.Create(user);
 
-        return Ok(userID);
+        if (!isValid)
+            return Conflict($"user with email {email} already exists");
+
+        return Ok();
     }
 
     [HttpPut("{email}")]
-    public ActionResult<string> Update(string email, [FromBody] UserEntity user)
+    public ActionResult<bool> Update(string email, string password, string newName)
     {
-        this.DbUser.Update(email, user.Name);
+        bool isValid = this.DbUser.Update(email, password, newName, out string errorMessage);
 
-        return Ok(email);
+        if (!isValid)
+            return BadRequest(errorMessage);
+
+        return Ok();
     }
 
     [HttpDelete("{email}")]
@@ -72,7 +77,7 @@ public class UserController : ControllerBase
         bool isValid = this.DbUser.Delete(email, password);
 
         if (!isValid)
-            Forbid();
+            BadRequest(); // replace with Forbid()
 
         return Ok();
     }

@@ -1,11 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PostgreSQL.Tables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PostgreSQL.Repositories
 {
@@ -27,36 +21,76 @@ namespace PostgreSQL.Repositories
             return users;
         }
 
-        public UserEntity? Get(string email, string password)
+        public UserEntity? Get(string email, string password, out string errorMessage)
         {
+            bool exists = this._DbContext.Users.Any(user => user.Email == email);
+
+            if (!exists)
+            {
+                errorMessage = $"no user with email {email}";
+                return null;
+            }
+
             UserEntity user = this._DbContext.Users
                 .AsNoTracking()
                 .Where(user => user.Email == email)
                 .First();
 
             if (user.Password != password)
+            {
+                errorMessage = $"incorrect password";
                 return null;
+            }
 
+            errorMessage = String.Empty;
             return user;
         }
 
-        public Guid Create(UserEntity user)
+        public bool Create(UserEntity userToCreate)
         {
-            this._DbContext.Users.Add(user);
+            bool exists = this._DbContext.Users.Any(user => user.Email == userToCreate.Email);
+
+            if (exists)
+                return false;
+
+            this._DbContext.Users.Add(userToCreate);
             this._DbContext.SaveChanges();
 
-            return user.ID;
+            return true;
         }
 
-        public string Update(string email, string name)
+        public bool Update(string email, string password, string newName, out string errorMessage)
         {
+            bool exists = this._DbContext.Users.Any(user => user.Email == email);
+
+            if (!exists)
+            {
+                errorMessage = $"no user with email {email}";
+                return false;
+            }
+
+            UserEntity user = this._DbContext.Users
+                .Where(user => user.Email == email)
+                .First();
+
+            if (user.Password != password)
+            {
+                errorMessage = $"incorrect password";
+                return false;
+            }
+
+            errorMessage = String.Empty;
+            user.Name = newName;
+            this._DbContext.SaveChanges();
+            return true;
+            /*
             this._DbContext.Users
                 .Where(user => user.Email == email)
                 .ExecuteUpdate(user => user
-                    .SetProperty(user => user.Name, user => name)
+                    .SetProperty(user => user.Name, user => newName)
                 );
 
-            return email;
+            return email;*/
         }
 
         public bool Delete(string email, string password)
