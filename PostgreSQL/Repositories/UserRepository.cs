@@ -83,14 +83,6 @@ namespace PostgreSQL.Repositories
             user.Name = newName;
             this._DbContext.SaveChanges();
             return true;
-            /*
-            this._DbContext.Users
-                .Where(user => user.Email == email)
-                .ExecuteUpdate(user => user
-                    .SetProperty(user => user.Name, user => newName)
-                );
-
-            return email;*/
         }
 
         public bool Delete(string email, string password)

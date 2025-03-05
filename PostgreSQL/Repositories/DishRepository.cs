@@ -11,6 +11,15 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
+        public List<DishEntity> Get()
+        {
+            List<DishEntity> dishes = this._DbContext.Dishes
+                .AsNoTracking()
+                .ToList();
+
+            return dises;
+        }
+
         /*
         public List<DishEntity> AllDishReturn()
         {
