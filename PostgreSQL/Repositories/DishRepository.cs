@@ -1,4 +1,5 @@
-﻿using PostgreSQL.Tables;
+﻿using Microsoft.EntityFrameworkCore;
+using PostgreSQL.Tables;
 
 namespace PostgreSQL.Repositories
 {
@@ -17,65 +18,31 @@ namespace PostgreSQL.Repositories
                 .AsNoTracking()
                 .ToList();
 
-            return dises;
+            return dishes;
         }
 
-        /*
-        public List<DishEntity> AllDishReturn()
+        public DishEntity? Get(Guid dishID, out string errorMessage)
         {
-            List<DishEntity> dishEntities = this._DbContext.DishEntity.ToList();
-            return dishEntities;
-        }
+            bool exists = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
 
-        public void AddDish(DishEntity dish)
-        {
-            this._DbContext.DishEntity.Add(dish);
-            this._DbContext.SaveChanges();
-        }
-        */
-
-        public List<DishEntity> Get()
-        {
-            return _DbContext.Dishes.ToList();
-        }
-        public DishEntity? Get(Guid ID)
-        {
-            return _DbContext.Dishes.FirstOrDefault(dish => dish.ID == ID);
-        }
-
-        public void Add(Guid ID, string name, string imagePath, string composition)
-        {
-            DishEntity dish = new DishEntity
+            if (!exists)
             {
-                ID = ID,
-                Name = name,
-                ImagePath = imagePath,
-                Composition = composition
-            };
-
-            this._DbContext.Add(dish);
-            this._DbContext.SaveChanges();
-        }
-        public void Add(DishEntity dish)
-        {
-            this._DbContext.Dishes.Add(dish);
-            this._DbContext.SaveChanges();
-        }
-
-        public void Edit(Guid ID, string name, string imagePath, string composition)
-        {
-            DishEntity? dish = this._DbContext.Dishes.FirstOrDefault(dish => dish.ID == ID);
-
-            if (dish == null)
-            {
-                // dish is null
-                return;
+                errorMessage = $"no dish with ID {dishID} exists";
+                return null;
             }
 
-            dish.Name = name;
-            dish.ImagePath = imagePath;
-            dish.Composition = composition;
+            DishEntity dish = this._DbContext.Dishes
+                .AsNoTracking()
+                .Where(dish => dish.ID == dishID)
+                .First();
 
+            errorMessage = String.Empty;
+            return dish;
+        }
+
+        public void Create(DishEntity dish)
+        {
+            this._DbContext.Dishes.Add(dish);
             this._DbContext.SaveChanges();
         }
     }

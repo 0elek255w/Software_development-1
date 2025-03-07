@@ -15,17 +15,11 @@ public class UserController : ControllerBase
         this.DbUser = user;
     }
 
-    [HttpGet]
-    public ActionResult<List<UserEntity>> Get()
-    {
-        List<UserEntity> users = this.DbUser.Get();
-
-        return Ok(users);
-    }
-
-    [HttpGet("{email}")]
-    public ActionResult<UserEntity> Get(string email, string password)
-    {
+    [HttpPost("GetUser")]
+    public ActionResult<UserEntity> Get(
+        [FromForm] string email,
+        [FromForm] string password
+    ) {
         UserEntity? user = this.DbUser.Get(email, password, out string errorMessage);
 
         if (user == null)
@@ -34,7 +28,7 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost]
+    [HttpPost("CreateUser")]
     public ActionResult<bool> Create(
         [FromForm] string name,
         [FromForm] string email,
@@ -60,9 +54,12 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("{email}")]
-    public ActionResult<bool> Update(string email, string password, string newName)
-    {
+    [HttpPut]
+    public ActionResult<bool> Update(
+        [FromForm] string email,
+        [FromForm] string password,
+        [FromForm] string newName
+    ) {
         bool isValid = this.DbUser.Update(email, password, newName, out string errorMessage);
 
         if (!isValid)
