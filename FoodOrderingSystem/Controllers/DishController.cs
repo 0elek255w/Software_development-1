@@ -25,7 +25,7 @@ public class DishController : ControllerBase
 
     [HttpGet("GetDishByID")]
     public ActionResult<DishEntity> Get(
-        [FromForm] Guid dishID
+        Guid dishID
     ) {
         DishEntity? dish = this.DbDish.Get(dishID, out string errorMessage);
 

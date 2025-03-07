@@ -47,7 +47,7 @@ namespace PostgreSQL.Repositories
             List<Guid> orderIDs = this._DbContext.Orders
                 .AsNoTracking()
                 .Where(order => order.UserID == userID)
-                .Select(order => order.ID)
+                .Select(order => order.OrderID)
                 .Distinct()
                 .ToList();
 
@@ -57,7 +57,7 @@ namespace PostgreSQL.Repositories
 
         public List<OrderEntity>? GetOrderByID(Guid orderID, out string errorMessage)
         {
-            bool exists = this._DbContext.Orders.Any(order => order.ID == orderID);
+            bool exists = this._DbContext.Orders.Any(order => order.OrderID == orderID);
 
             if (!exists)
             {
@@ -67,7 +67,7 @@ namespace PostgreSQL.Repositories
 
             List<OrderEntity> orders = this._DbContext.Orders
                 .AsNoTracking()
-                .Where(order => order.ID == orderID)
+                .Where(order => order.OrderID == orderID)
                 .ToList();
 
             errorMessage = String.Empty;
@@ -76,22 +76,31 @@ namespace PostgreSQL.Repositories
 
         public bool Create(Guid userID, Dictionary<Guid, int> dishAmounts, out string errorMessage)
         {
+            bool existsUser = this._DbContext.Users.Any(user => user.ID == userID);
+
+            if (!existsUser)
+            {
+                errorMessage = $"no user with ID {userID} exests";
+                return false;
+            }
+
             Guid orderID = Guid.NewGuid();
 
             foreach (KeyValuePair<Guid, int> dishAmount in dishAmounts)
             {
                 Guid dishID = dishAmount.Key;
                 int amount = dishAmount.Value;
-                bool exists = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
+                bool existsDish = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
 
-                if (!exists)
+                if (!existsDish)
                 {
                     errorMessage = $"no dish with ID {dishID} exists";
                     return false;
                 }
 
                 OrderEntity order = new OrderEntity();
-                order.ID = orderID;
+                order.ID = Guid.NewGuid();
+                order.OrderID = orderID;
                 order.UserID = userID;
                 order.DishID = dishID;
                 order.Amount = amount;
@@ -107,7 +116,7 @@ namespace PostgreSQL.Repositories
 
         public bool Delete(Guid orderID, out string errorMessage)
         {
-            bool exists = this._DbContext.Orders.Any(order => order.ID == orderID);
+            bool exists = this._DbContext.Orders.Any(order => order.OrderID == orderID);
 
             if (!exists)
             {

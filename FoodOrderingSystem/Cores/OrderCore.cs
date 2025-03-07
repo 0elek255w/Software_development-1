@@ -8,10 +8,11 @@ namespace FoodOrderingSystem.Cores
         public Guid UserID { get; set; }
         public Dictionary<Guid, int> Dishes { get; set; } = new Dictionary<Guid, int>();
 
-        public OrderCore(Guid iD, List<OrderEntity> orderPositions)
+        /*
+        public OrderCore(Guid ID, List<OrderEntity> orderPositions)
         {
-            ID = iD;
-            UserID = orderPositions.First().UserID;
+            this.ID = ID;
+            this.UserID = orderPositions.First().UserID;
 
             foreach (OrderEntity orderPosition in orderPositions)
             {
@@ -21,5 +22,6 @@ namespace FoodOrderingSystem.Cores
                 this.Dishes.Add(dishID, amount);
             }
         }
+        */
     }
 }

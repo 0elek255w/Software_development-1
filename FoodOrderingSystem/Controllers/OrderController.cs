@@ -2,6 +2,7 @@
 using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
 using FoodOrderingSystem.Cores;
+using System.Collections.Frozen;
 
 namespace FoodOrderingSystem.Controllers;
 
@@ -16,6 +17,7 @@ public class OrderController : Controller
         this.DbOrder = order;
     }
 
+    /*
     [HttpGet("GetOrderByID")]
     public ActionResult<OrderCore> GetOrderByID(
         [FromForm] Guid orderID
@@ -28,6 +30,7 @@ public class OrderController : Controller
         OrderCore order = new OrderCore(orderID, orderPositions);
         return Ok(order);
     }
+    */
 
     [HttpGet("GetOrderIDsByUserID")]
     public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
@@ -43,11 +46,9 @@ public class OrderController : Controller
 
     [HttpPost]
     public ActionResult Create(
-        [FromForm] Guid userID,
-        [FromForm] Dictionary<Guid, int> dishAmounts
-        // [FromForm] OrderEntity order
+        [FromBody] OrderCore order
     ) {
-        bool isValid = this.DbOrder.Create(userID, dishAmounts, out string errorMessage);
+        bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
 
         if (!isValid)
             return BadRequest(errorMessage);
