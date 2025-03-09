@@ -9,12 +9,6 @@ namespace PostgreSQL.Configurations
         public void Configure(EntityTypeBuilder<DishEntity> builder)
         {
             builder.HasKey(dish => dish.ID);
-
-            builder
-                .HasMany(dish => dish.Orders)
-                .WithOne(order => order.Dish)
-                .HasForeignKey(order => order.DishID)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

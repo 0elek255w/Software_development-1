@@ -32,39 +32,39 @@ public class OrderController : Controller
     }
     */
 
-    [HttpGet("GetOrderIDsByUserID")]
-    public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
-        [FromForm] Guid userID
-    ) {
-        List<Guid>? orderIDs = this.DbOrder.GetAllOrderIDsByUserID(userID, out string errorMessage);
+    //[HttpGet("GetOrderIDsByUserID")]
+    //public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
+    //    [FromForm] Guid userID
+    //) {
+    //    List<Guid>? orderIDs = this.DbOrder.GetAllOrderIDsByUserID(userID, out string errorMessage);
 
-        if (orderIDs == null)
-            return BadRequest(errorMessage);
+    //    if (orderIDs == null)
+    //        return BadRequest(errorMessage);
 
-        return Ok(orderIDs);
-    }
+    //    return Ok(orderIDs);
+    //}
 
-    [HttpPost]
-    public ActionResult Create(
-        [FromBody] OrderCore order
-    ) {
-        bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
+    //[HttpPost]
+    //public ActionResult Create(
+    //    [FromBody] OrderCore order
+    //) {
+    //    bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
 
-        if (!isValid)
-            return BadRequest(errorMessage);
+    //    if (!isValid)
+    //        return BadRequest(errorMessage);
 
-        return Ok();
-    }
+    //    return Ok();
+    //}
 
-    [HttpDelete]
-    public ActionResult Delete(
-        [FromForm] Guid orderID
-    ) {
-        bool isValid = this.DbOrder.Delete(orderID, out string errorMessage);
+    //[HttpDelete]
+    //public ActionResult Delete(
+    //    [FromForm] Guid orderID
+    //) {
+    //    bool isValid = this.DbOrder.Delete(orderID, out string errorMessage);
 
-        if (!isValid)
-            return BadRequest(errorMessage);
+    //    if (!isValid)
+    //        return BadRequest(errorMessage);
 
-        return Ok();
-    }
+    //    return Ok();
+    //}
 }

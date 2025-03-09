@@ -12,8 +12,8 @@ using PostgreSQL;
 namespace PostgreSQL.Migrations
 {
     [DbContext(typeof(DbContextFOS))]
-    [Migration("20250307170437_RemoveOrderUniqueConstraint")]
-    partial class RemoveOrderUniqueConstraint
+    [Migration("20250308234037_InitialCreation")]
+    partial class InitialCreation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,13 +35,16 @@ namespace PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ImagePath")
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
 
                     b.HasKey("ID");
 
@@ -54,6 +57,18 @@ namespace PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("UserID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("PostgreSQL.Tables.OrderPositionEntity", b =>
+                {
                     b.Property<int>("Amount")
                         .HasColumnType("integer");
 
@@ -63,18 +78,11 @@ namespace PostgreSQL.Migrations
                     b.Property<Guid>("OrderID")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ID");
-
                     b.HasIndex("DishID");
 
                     b.HasIndex("OrderID");
 
-                    b.HasIndex("UserID");
-
-                    b.ToTable("Orders");
+                    b.ToTable("OrderPositions");
                 });
 
             modelBuilder.Entity("PostgreSQL.Tables.UserEntity", b =>
@@ -84,6 +92,10 @@ namespace PostgreSQL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -105,35 +117,6 @@ namespace PostgreSQL.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("PostgreSQL.Tables.OrderEntity", b =>
-                {
-                    b.HasOne("PostgreSQL.Tables.DishEntity", "Dish")
-                        .WithMany("Orders")
-                        .HasForeignKey("DishID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PostgreSQL.Tables.UserEntity", "User")
-                        .WithMany("Orders")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Dish");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PostgreSQL.Tables.DishEntity", b =>
-                {
-                    b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("PostgreSQL.Tables.UserEntity", b =>
-                {
-                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

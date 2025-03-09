@@ -12,7 +12,7 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
-        public List<DishEntity> Get()
+        public List<DishEntity> GetAllDishes()
         {
             List<DishEntity> dishes = this._DbContext.Dishes
                 .AsNoTracking()
@@ -21,27 +21,24 @@ namespace PostgreSQL.Repositories
             return dishes;
         }
 
-        public DishEntity? Get(Guid dishID, out string errorMessage)
+        public DishEntity? GetDishByID(Guid dishID, out string errorMessage)
         {
-            bool exists = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
+            DishEntity? dish = this._DbContext.Dishes
+                .Find(dishID);
 
-            if (!exists)
+            if (dish == null)
             {
                 errorMessage = $"no dish with ID {dishID} exists";
                 return null;
             }
 
-            DishEntity dish = this._DbContext.Dishes
-                .AsNoTracking()
-                .Where(dish => dish.ID == dishID)
-                .First();
-
-            errorMessage = String.Empty;
+            errorMessage = string.Empty;
             return dish;
         }
 
         public void Create(DishEntity dish)
         {
+            dish.ID = Guid.NewGuid();
             this._DbContext.Dishes.Add(dish);
             this._DbContext.SaveChanges();
         }

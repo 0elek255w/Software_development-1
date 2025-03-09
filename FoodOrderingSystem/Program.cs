@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using PostgreSQL.Configurations;
 using PostgreSQL.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<OrderRepository>();
 builder.Services.AddScoped<DishRepository>();
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderPositionConfiguration>();
 
 builder.Services.AddDbContext<PostgreSQL.DbContextFOS>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

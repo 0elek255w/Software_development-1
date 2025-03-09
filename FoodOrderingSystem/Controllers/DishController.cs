@@ -18,7 +18,7 @@ public class DishController : ControllerBase
     [HttpGet("GetAllDishes")]
     public ActionResult<List<DishEntity>> Get()
     {
-        List<DishEntity> dishes = this.DbDish.Get();
+        List<DishEntity> dishes = this.DbDish.GetAllDishes();
 
         return Ok(dishes);
     }
@@ -27,7 +27,7 @@ public class DishController : ControllerBase
     public ActionResult<DishEntity> Get(
         Guid dishID
     ) {
-        DishEntity? dish = this.DbDish.Get(dishID, out string errorMessage);
+        DishEntity? dish = this.DbDish.GetDishByID(dishID, out string errorMessage);
 
         if (dish == null)
             return BadRequest(errorMessage);
@@ -38,15 +38,15 @@ public class DishController : ControllerBase
     [HttpPost]
     public ActionResult Create(
         [FromForm] string name,
-        [FromForm] string imagePath,
+        [FromForm] string image,
         [FromForm] string composition
     ) {
         DishEntity dish = new DishEntity();
         dish.Name = name;
-        dish.ImagePath = imagePath;
+        dish.Image = image;
         dish.Composition = composition;
         this.DbDish.Create(dish);
 
-        return Ok();
+        return Created();
     }
 }

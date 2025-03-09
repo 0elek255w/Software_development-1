@@ -12,15 +12,6 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
-        public List<UserEntity> Get()
-        {
-            List<UserEntity> users = this._DbContext.Users
-                .AsNoTracking()
-                .ToList();
-
-            return users;
-        }
-
         public UserEntity? Get(string email, string password, out string errorMessage)
         {
             bool exists = this._DbContext.Users.Any(user => user.Email == email);
@@ -42,24 +33,29 @@ namespace PostgreSQL.Repositories
                 return null;
             }
 
-            errorMessage = String.Empty;
+            errorMessage = string.Empty;
             return user;
         }
 
-        public bool Create(UserEntity userToCreate)
+        public bool Create(UserEntity userToCreate, out string errorMessage)
         {
             bool exists = this._DbContext.Users.Any(user => user.Email == userToCreate.Email);
 
             if (exists)
+            {
+                errorMessage = $"user with email {userToCreate.Email} already exists";
                 return false;
+            }
 
+            userToCreate.ID = Guid.NewGuid();
             this._DbContext.Users.Add(userToCreate);
             this._DbContext.SaveChanges();
 
+            errorMessage = string.Empty;
             return true;
         }
 
-        public bool Update(string email, string password, string newName, out string errorMessage)
+        public bool Update(string email, string password, string? newName, string? newImage, out string errorMessage)
         {
             bool exists = this._DbContext.Users.Any(user => user.Email == email);
 
@@ -79,26 +75,54 @@ namespace PostgreSQL.Repositories
                 return false;
             }
 
-            errorMessage = String.Empty;
-            user.Name = newName;
+            if (newName != null)
+                user.Name = newName;
+
+            if (newImage != null)
+                user.Image = newImage;
+
+            errorMessage = string.Empty;
             this._DbContext.SaveChanges();
             return true;
         }
 
-        public bool Delete(string email, string password)
+        public bool Delete(string email, string password, out string errorMessage)
         {
+            bool exists = this._DbContext.Users.Any(user => user.Email == email);
+
+            if (!exists)
+            {
+                errorMessage = $"no user with email {email}";
+                return false;
+            }
+
             UserEntity userToDelete = this._DbContext.Users
                 .Where(user => user.Email == email)
                 .First();
 
             if (userToDelete.Password != password)
+            {
+                errorMessage = "incorrect password";
                 return false;
+            }
 
             this._DbContext.Users
                 .Where(user => (user.ID == userToDelete.ID))
                 .ExecuteDelete();
 
+            errorMessage = string.Empty;
             return true;
         }
+
+        /*
+        public List<UserEntity> Get()
+        {
+            List<UserEntity> users = this._DbContext.Users
+                .AsNoTracking()
+                .ToList();
+
+            return users;
+        }
+        */
     }
 }

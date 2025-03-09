@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
+using FoodOrderingSystem.Objects;
 
 namespace FoodOrderingSystem.Controllers;
 
@@ -16,51 +17,61 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("GetUser")]
-    public ActionResult<UserEntity> Get(
-        [FromForm] string email,
-        [FromForm] string password
+    public ActionResult<UserObject> Get(
+        [FromBody] UserObject userRecieve
     ) {
-        UserEntity? user = this.DbUser.Get(email, password, out string errorMessage);
+        if (userRecieve.Password == null)
+            return BadRequest("password is null");
+
+        UserEntity? user = this.DbUser.Get(userRecieve.Email, userRecieve.Password, out string errorMessage);
 
         if (user == null)
             return BadRequest(errorMessage); // replace with Forbid()
 
-        return Ok(user);
+        UserObject userSend = new UserObject(user.ID, user.Email, null, user.Name, user.Email, user.Type);
+        return Ok(userSend);
     }
 
     [HttpPost("CreateUser")]
     public ActionResult<bool> Create(
-        [FromForm] string name,
-        [FromForm] string email,
-        [FromForm] string password
+        [FromBody] UserObject userRecieve
     ) {
-        UserEntity user = new UserEntity
-        {
-            ID = Guid.NewGuid(),
-            Name = name,
-            Email = email,
-            Password = password,
-            Type = "user", // tmp temp
-            Orders = new List<OrderEntity>()
-        };
+        UserEntity user = new UserEntity();
 
-        // check if UserEntity.Type is valid
+        if (userRecieve.Password == null)
+            return BadRequest("password is null");
 
-        bool isValid = this.DbUser.Create(user);
+        if (userRecieve.Name == null)
+            return BadRequest("name is null");
+
+        if (userRecieve.Image == null)
+            user.Image = string.Empty;
+        else
+            user.Image = userRecieve.Image;
+
+        user.Email = userRecieve.Email;
+        user.Password = userRecieve.Password;
+        user.Name = userRecieve.Name;
+        user.Type = "user";
+
+        // check if userRecieve.Type is valid
+
+        bool isValid = this.DbUser.Create(user, out string errorMessage);
 
         if (!isValid)
-            return Conflict($"user with email {email} already exists");
+            return Conflict(errorMessage);
 
-        return Ok();
+        return Created();
     }
 
     [HttpPut]
     public ActionResult<bool> Update(
-        [FromForm] string email,
-        [FromForm] string password,
-        [FromForm] string newName
+        [FromBody] UserObject userRecieve
     ) {
-        bool isValid = this.DbUser.Update(email, password, newName, out string errorMessage);
+        if (userRecieve.Password == null)
+            return BadRequest("password is null");
+
+        bool isValid = this.DbUser.Update(userRecieve.Email, userRecieve.Password, userRecieve.Name, userRecieve.Image, out string errorMessage);
 
         if (!isValid)
             return BadRequest(errorMessage);
@@ -68,13 +79,17 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("{email}")]
-    public ActionResult<bool> Delete(string email, string password)
-    {
-        bool isValid = this.DbUser.Delete(email, password);
+    [HttpDelete]
+    public ActionResult<bool> Delete(
+        [FromBody] UserObject userRecieve
+    ) {
+        if (userRecieve.Password == null)
+            return BadRequest("password is null");
+
+        bool isValid = this.DbUser.Delete(userRecieve.Email, userRecieve.Password, out string errorMessage);
 
         if (!isValid)
-            BadRequest(); // replace with Forbid()
+            BadRequest(errorMessage); // replace with Forbid()
 
         return Ok();
     }

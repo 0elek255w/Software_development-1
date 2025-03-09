@@ -34,6 +34,7 @@ namespace PostgreSQL.Repositories
         }
         */
 
+        /*
         public List<Guid>? GetAllOrderIDsByUserID(Guid userID, out string errorMessage)
         {
             bool exists = this._DbContext.Orders.Any(user => user.ID == userID);
@@ -104,6 +105,8 @@ namespace PostgreSQL.Repositories
                 order.UserID = userID;
                 order.DishID = dishID;
                 order.Amount = amount;
+                order.User = null;
+                order.Dish = null;
 
                 this._DbContext.Orders.Add(order);
             }
@@ -131,5 +134,6 @@ namespace PostgreSQL.Repositories
 
             return true;
         }
+        */
     }
 }

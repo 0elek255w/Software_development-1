@@ -13,14 +13,6 @@ namespace PostgreSQL.Configurations
             builder
                 .HasIndex(order => order.UserID)
                 .IsUnique(false);
-
-            builder
-                .HasIndex(order => order.DishID)
-                .IsUnique(false);
-
-            builder
-                .HasIndex(order => order.OrderID)
-                .IsUnique(false);
         }
     }
 }

@@ -12,13 +12,7 @@ namespace PostgreSQL.Configurations
 
             builder
                 .HasIndex(user => user.Email)
-                .IsUnique();
-
-            builder
-                .HasMany(user => user.Orders)
-                .WithOne(order => order.User)
-                .HasForeignKey(order => order.UserID)
-                .OnDelete(DeleteBehavior.Cascade);
+                .IsUnique(true);
         }
     }
 }
