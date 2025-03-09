@@ -8,6 +8,8 @@ namespace PostgreSQL.Configurations
     {
         public void Configure(EntityTypeBuilder<OrderPositionEntity> builder)
         {
+            builder.HasKey(orderPosition => orderPosition.ID);
+
             builder
                 .HasIndex(orderPosition => orderPosition.OrderID)
                 .IsUnique(false);

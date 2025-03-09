@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PostgreSQL.Objects;
 using PostgreSQL.Tables;
 
 namespace PostgreSQL.Repositories
@@ -10,6 +11,83 @@ namespace PostgreSQL.Repositories
         public OrderRepository(DbContextFOS dbContext)
         {
             _DbContext = dbContext;
+        }
+
+        public OrderObject? Get(Guid orderID, out string errorMessage)
+        {
+            OrderEntity? orderEntity = this._DbContext.Orders.Find(orderID);
+
+            if (orderEntity == null)
+            {
+                errorMessage = $"no order with ID {orderID} exists";
+                return null;
+            }
+
+            OrderObject orderToReturn = new OrderObject();
+            orderToReturn.ID = orderID;
+            orderToReturn.UserID = orderEntity.UserID;
+
+            List<OrderPositionEntity> positions = this._DbContext.OrderPositions
+                .AsNoTracking()
+                .Where(position => position.OrderID == orderID)
+                .ToList();
+
+            foreach (OrderPositionEntity positionToConvert in positions)
+            {
+                orderToReturn.Dishes.Add(positionToConvert.DishID, positionToConvert.Amount);
+            }
+
+            errorMessage = string.Empty;
+            return orderToReturn;
+        }
+
+        public bool Create(Guid userID, Dictionary<Guid, int> Dishes, out string errorMessage)
+        {
+            bool existsUser = this._DbContext.Users.Any(user => user.ID == userID);
+
+            if (!existsUser)
+            {
+                errorMessage = $"no user with ID {userID} exists";
+                return false;
+            }
+
+            // TODO: check for user password
+
+            Guid orderID = Guid.NewGuid();
+            OrderEntity order = new OrderEntity();
+            order.ID = orderID;
+            order.UserID = userID;
+
+            this._DbContext.Orders
+                .Add(order);
+
+            OrderPositionEntity positionToAdd = new OrderPositionEntity();
+
+            foreach (KeyValuePair<Guid, int> position in Dishes)
+            {
+                Guid dishID = position.Key;
+
+                bool existsDish = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
+
+                if (!existsDish)
+                {
+                    errorMessage = $"no dish with ID {dishID} exists";
+                    return false;
+                }
+
+                positionToAdd.ID = Guid.NewGuid();
+                positionToAdd.OrderID = orderID;
+                positionToAdd.DishID = dishID;
+                positionToAdd.Amount = position.Value;
+
+                this._DbContext.OrderPositions
+                    .Add(positionToAdd);
+                this._DbContext.SaveChanges(); // TODO: orderPosition can get saved even tho order is not: move dish checking out of loop scope
+            }
+
+            this._DbContext.SaveChanges();
+            errorMessage = string.Empty;
+            return true;
         }
 
         /*

@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
-using FoodOrderingSystem.Cores;
-using System.Collections.Frozen;
+using PostgreSQL.Objects;
 
 namespace FoodOrderingSystem.Controllers;
 
@@ -17,20 +15,29 @@ public class OrderController : Controller
         this.DbOrder = order;
     }
 
-    /*
-    [HttpGet("GetOrderByID")]
-    public ActionResult<OrderCore> GetOrderByID(
-        [FromForm] Guid orderID
+    [HttpPost("Create")]
+    public ActionResult Create(
+        [FromBody] OrderObject order
     ) {
-        List<OrderEntity>? orderPositions = this.DbOrder.GetOrderByID(orderID, out string errorMessage);
+        bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
 
-        if (orderPositions  == null)
+        if (!isValid)
             return BadRequest(errorMessage);
 
-        OrderCore order = new OrderCore(orderID, orderPositions);
+        return Created();
+    }
+
+    [HttpPost("GetOrderByID")]
+    public ActionResult<OrderObject> Get(
+        [FromBody] Guid orderID
+    ) {
+        OrderObject? order = this.DbOrder.Get(orderID, out string errorMessage);
+
+        if (order == null)
+            return BadRequest(errorMessage);
+
         return Ok(order);
     }
-    */
 
     //[HttpGet("GetOrderIDsByUserID")]
     //public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
@@ -42,18 +49,6 @@ public class OrderController : Controller
     //        return BadRequest(errorMessage);
 
     //    return Ok(orderIDs);
-    //}
-
-    //[HttpPost]
-    //public ActionResult Create(
-    //    [FromBody] OrderCore order
-    //) {
-    //    bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
-
-    //    if (!isValid)
-    //        return BadRequest(errorMessage);
-
-    //    return Ok();
     //}
 
     //[HttpDelete]

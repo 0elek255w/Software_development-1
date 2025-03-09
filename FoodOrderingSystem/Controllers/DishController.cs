@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using PostgreSQL.Objects;
+using Microsoft.AspNetCore.Mvc;
 using PostgreSQL.Repositories;
 using PostgreSQL.Tables;
 
@@ -37,14 +38,28 @@ public class DishController : ControllerBase
 
     [HttpPost]
     public ActionResult Create(
-        [FromForm] string name,
-        [FromForm] string image,
-        [FromForm] string composition
+        [FromBody] DishObject dishObject
     ) {
         DishEntity dish = new DishEntity();
-        dish.Name = name;
-        dish.Image = image;
-        dish.Composition = composition;
+
+        if (dishObject.Name == null)
+            return BadRequest("name is null");
+
+        if (dishObject.Price == null)
+            return BadRequest("price is null");
+
+        if (dishObject.Image == null)
+            dish.Image = string.Empty;
+        else
+            dish.Image = dishObject.Image;
+
+        if (dishObject.Composition == null)
+            dish.Composition = string.Empty;
+        else
+            dish.Composition = dishObject.Composition ;
+
+        dish.Name = dishObject.Name;
+        dish.Price = (decimal)dishObject.Price;
         this.DbDish.Create(dish);
 
         return Created();

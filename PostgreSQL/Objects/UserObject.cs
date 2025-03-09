@@ -1,7 +1,4 @@
-﻿using PostgreSQL.Tables;
-using System.Runtime.CompilerServices;
-
-namespace FoodOrderingSystem.Objects
+﻿namespace PostgreSQL.Objects
 {
     public class UserObject
     {
@@ -23,3 +20,4 @@ namespace FoodOrderingSystem.Objects
         }
     }
 }
+

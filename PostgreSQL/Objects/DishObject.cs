@@ -1,4 +1,4 @@
-﻿namespace FoodOrderingSystem.Cores
+﻿namespace PostgreSQL.Objects
 {
     public class DishObject
     {

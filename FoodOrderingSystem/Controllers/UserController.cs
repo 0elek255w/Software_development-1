@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PostgreSQL.Tables;
 using PostgreSQL.Repositories;
-using FoodOrderingSystem.Objects;
+using PostgreSQL.Objects;
 
 namespace FoodOrderingSystem.Controllers;
 

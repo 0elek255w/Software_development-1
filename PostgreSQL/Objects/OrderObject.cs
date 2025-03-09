@@ -1,6 +1,4 @@
-﻿using PostgreSQL.Tables;
-
-namespace FoodOrderingSystem.Cores
+﻿namespace PostgreSQL.Objects
 {
     public class OrderObject
     {
@@ -9,3 +7,4 @@ namespace FoodOrderingSystem.Cores
         public Dictionary<Guid, int> Dishes { get; set; } = new Dictionary<Guid, int>();
     }
 }
+

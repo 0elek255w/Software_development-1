@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PostgreSQL.Tables;
+using System.Runtime.CompilerServices;
 
 namespace PostgreSQL.Repositories
 {
@@ -18,7 +19,7 @@ namespace PostgreSQL.Repositories
 
             if (!exists)
             {
-                errorMessage = $"no user with email {email}";
+                errorMessage = $"no user with email {email} exists";
                 return null;
             }
 
