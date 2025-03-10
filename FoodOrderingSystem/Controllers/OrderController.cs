@@ -19,7 +19,18 @@ public class OrderController : Controller
     public ActionResult Create(
         [FromBody] OrderObject order
     ) {
-        bool isValid = this.DbOrder.Create(order.UserID, order.Dishes, out string errorMessage);
+        Dictionary<Guid, int>? orderPositions = order.Dishes;
+
+        if (orderPositions == null)
+            return BadRequest("Dishes is null");
+
+        if (orderPositions.Count < 1)
+            return BadRequest("Dishes is empty");
+
+        if (order.UserPassword == null)
+            return BadRequest("user password is null");
+
+        bool isValid = this.DbOrder.Create(order.UserID, order.UserPassword, orderPositions, out string errorMessage);
 
         if (!isValid)
             return BadRequest(errorMessage);
@@ -29,14 +40,17 @@ public class OrderController : Controller
 
     [HttpPost("GetOrderByID")]
     public ActionResult<OrderObject> Get(
-        [FromBody] Guid orderID
+        [FromBody] OrderObject order
     ) {
-        OrderObject? order = this.DbOrder.Get(orderID, out string errorMessage);
+        if (order.ID == null)
+            return BadRequest("order ID is null");
 
-        if (order == null)
+        OrderObject? orderToReturn = this.DbOrder.Get(order, out string errorMessage);
+
+        if (orderToReturn == null)
             return BadRequest(errorMessage);
 
-        return Ok(order);
+        return Ok(orderToReturn);
     }
 
     //[HttpGet("GetOrderIDsByUserID")]
@@ -51,15 +65,21 @@ public class OrderController : Controller
     //    return Ok(orderIDs);
     //}
 
-    //[HttpDelete]
-    //public ActionResult Delete(
-    //    [FromForm] Guid orderID
-    //) {
-    //    bool isValid = this.DbOrder.Delete(orderID, out string errorMessage);
+    [HttpDelete]
+    public ActionResult Delete(
+        [FromBody] OrderObject order
+    ) {
+        if (order.ID == null)
+            return BadRequest("order ID is null");
 
-    //    if (!isValid)
-    //        return BadRequest(errorMessage);
+        if (order.UserPassword == null)
+            return BadRequest("user password is null");
 
-    //    return Ok();
-    //}
+        bool isValid = this.DbOrder.Delete(order, out string errorMessage);
+
+        if (!isValid)
+            return BadRequest(errorMessage);
+
+        return Ok();
+    }
 }

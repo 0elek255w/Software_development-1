@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PostgreSQL.Tables;
-using System.Runtime.CompilerServices;
+using PostgreSQL.Objects;
+using PostgreSQL;
 
 namespace PostgreSQL.Repositories
 {
@@ -13,11 +14,50 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
+        public bool Exists(string email)
+        {
+            return this._DbContext.Users.Any(user => user.Email == email);
+        }
+
+        public bool Exists(Guid ID)
+        {
+            return this._DbContext.Users.Any(user => user.ID == ID);
+        }
+
+        /*
+        public bool IsValid(string Email, string? password)
+        {
+            if (password == null)
+                return this._DbContext.Users.Any(user => user.Email == Email);
+
+            UserEntity user = this._DbContext.Users.Where(user => user.Email == Email).First();
+
+            if (user.Password == password)
+                return true;
+
+            return false;
+        }
+
+        public bool IsValid(Guid ID, string? password)
+        {
+            UserEntity? user = this._DbContext.Users.Find(ID);
+
+            if (password == null)
+                return user == null;
+
+            if (user == null)
+                return false;
+
+            if (user.Password == password)
+                return true;
+
+            return false;
+        }
+        */
+
         public UserEntity? Get(string email, string password, out string errorMessage)
         {
-            bool exists = this._DbContext.Users.Any(user => user.Email == email);
-
-            if (!exists)
+            if (!this.Exists(email))
             {
                 errorMessage = $"no user with email {email} exists";
                 return null;
@@ -38,15 +78,23 @@ namespace PostgreSQL.Repositories
             return user;
         }
 
-        public bool Create(UserEntity userToCreate, out string errorMessage)
+        public bool Create(UserObject user, out string errorMessage)
         {
-            bool exists = this._DbContext.Users.Any(user => user.Email == userToCreate.Email);
-
-            if (exists)
+            if (this.Exists(user.Email))
             {
-                errorMessage = $"user with email {userToCreate.Email} already exists";
+                errorMessage = $"user with email {user.Email} already exists";
                 return false;
             }
+
+            UserEntity userToCreate = new UserEntity()
+            {
+                ID = Guid.NewGuid(),
+                Email = user.Email,
+                Password = user.Password, // TODO: can be null
+                Name = user.Name, // TODO: can be null
+                Image = user.Image == null ? string.Empty : user.Image,
+                Type = UserTypes.User
+            };
 
             userToCreate.ID = Guid.NewGuid();
             this._DbContext.Users.Add(userToCreate);
@@ -58,9 +106,7 @@ namespace PostgreSQL.Repositories
 
         public bool Update(string email, string password, string? newName, string? newImage, out string errorMessage)
         {
-            bool exists = this._DbContext.Users.Any(user => user.Email == email);
-
-            if (!exists)
+            if (!this.Exists(email))
             {
                 errorMessage = $"no user with email {email}";
                 return false;
@@ -89,9 +135,7 @@ namespace PostgreSQL.Repositories
 
         public bool Delete(string email, string password, out string errorMessage)
         {
-            bool exists = this._DbContext.Users.Any(user => user.Email == email);
-
-            if (!exists)
+            if (!this.Exists(email))
             {
                 errorMessage = $"no user with email {email}";
                 return false;
@@ -114,16 +158,5 @@ namespace PostgreSQL.Repositories
             errorMessage = string.Empty;
             return true;
         }
-
-        /*
-        public List<UserEntity> Get()
-        {
-            List<UserEntity> users = this._DbContext.Users
-                .AsNoTracking()
-                .ToList();
-
-            return users;
-        }
-        */
     }
 }

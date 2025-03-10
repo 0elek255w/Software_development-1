@@ -34,27 +34,13 @@ public class UserController : ControllerBase
 
     [HttpPost("CreateUser")]
     public ActionResult<bool> Create(
-        [FromBody] UserObject userRecieve
+        [FromBody] UserObject user
     ) {
-        UserEntity user = new UserEntity();
-
-        if (userRecieve.Password == null)
+        if (user.Password == null)
             return BadRequest("password is null");
 
-        if (userRecieve.Name == null)
+        if (user.Name == null)
             return BadRequest("name is null");
-
-        if (userRecieve.Image == null)
-            user.Image = string.Empty;
-        else
-            user.Image = userRecieve.Image;
-
-        user.Email = userRecieve.Email;
-        user.Password = userRecieve.Password;
-        user.Name = userRecieve.Name;
-        user.Type = "user";
-
-        // check if userRecieve.Type is valid
 
         bool isValid = this.DbUser.Create(user, out string errorMessage);
 

@@ -13,23 +13,41 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
-        public OrderObject? Get(Guid orderID, out string errorMessage)
+        public OrderObject? Get(OrderObject order, out string errorMessage)
         {
-            OrderEntity? orderEntity = this._DbContext.Orders.Find(orderID);
+            OrderEntity? orderEntity = this._DbContext.Orders.Find(order.ID);
 
             if (orderEntity == null)
             {
-                errorMessage = $"no order with ID {orderID} exists";
+                errorMessage = $"no order with ID {order.ID} exists";
                 return null;
             }
 
-            OrderObject orderToReturn = new OrderObject();
-            orderToReturn.ID = orderID;
-            orderToReturn.UserID = orderEntity.UserID;
+            UserEntity? user = this._DbContext.Users.Find(order.UserID);
+
+            if (user == null)
+            {
+                errorMessage = $"no user with ID {order.UserID} exists";
+                return null;
+            }
+
+            if (user.Password == order.UserPassword)
+            {
+                errorMessage = $"incorrect password";
+                return null;
+            }
+
+            OrderObject orderToReturn = new OrderObject()
+            {
+                ID = order.ID,
+                UserID = orderEntity.UserID,
+                UserPassword = null,
+                Dishes = new Dictionary<Guid, int>()
+            };
 
             List<OrderPositionEntity> positions = this._DbContext.OrderPositions
                 .AsNoTracking()
-                .Where(position => position.OrderID == orderID)
+                .Where(position => position.OrderID == order.ID)
                 .ToList();
 
             foreach (OrderPositionEntity positionToConvert in positions)
@@ -41,17 +59,33 @@ namespace PostgreSQL.Repositories
             return orderToReturn;
         }
 
-        public bool Create(Guid userID, Dictionary<Guid, int> Dishes, out string errorMessage)
+        public bool Create(Guid userID, string userPassword, Dictionary<Guid, int> Dishes, out string errorMessage)
         {
-            bool existsUser = this._DbContext.Users.Any(user => user.ID == userID);
+            UserEntity? user = this._DbContext.Users.Find(userID);
 
-            if (!existsUser)
+            if (user == null)
             {
                 errorMessage = $"no user with ID {userID} exists";
                 return false;
             }
 
-            // TODO: check for user password
+            if (user.Password != userPassword)
+            {
+                errorMessage = $"incorrect password";
+                return false;
+            }
+
+            foreach (KeyValuePair<Guid, int> position in Dishes)
+            {
+                Guid dishID = position.Key;
+                bool existsDish = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
+
+                if (!existsDish)
+                {
+                    errorMessage = $"no dish with ID {dishID} exists";
+                    return false;
+                }
+            }
 
             Guid orderID = Guid.NewGuid();
             OrderEntity order = new OrderEntity();
@@ -61,28 +95,19 @@ namespace PostgreSQL.Repositories
             this._DbContext.Orders
                 .Add(order);
 
-            OrderPositionEntity positionToAdd = new OrderPositionEntity();
-
             foreach (KeyValuePair<Guid, int> position in Dishes)
             {
                 Guid dishID = position.Key;
-
-                bool existsDish = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
-
-                if (!existsDish)
+                OrderPositionEntity positionToAdd = new OrderPositionEntity
                 {
-                    errorMessage = $"no dish with ID {dishID} exists";
-                    return false;
-                }
+                    ID = Guid.NewGuid(),
+                    OrderID = orderID,
+                    DishID = dishID,
+                    Amount = position.Value
+                };
 
-                positionToAdd.ID = Guid.NewGuid();
-                positionToAdd.OrderID = orderID;
-                positionToAdd.DishID = dishID;
-                positionToAdd.Amount = position.Value;
-
-                this._DbContext.OrderPositions
-                    .Add(positionToAdd);
-                this._DbContext.SaveChanges(); // TODO: orderPosition can get saved even tho order is not: move dish checking out of loop scope
+                this._DbContext.OrderPositions.Add(positionToAdd);
+                this._DbContext.SaveChanges();
             }
 
             this._DbContext.SaveChanges();
@@ -90,128 +115,40 @@ namespace PostgreSQL.Repositories
             return true;
         }
 
-        /*
-        public List<OrderEntity>? GetAllUserOrders(Guid userID, out string errorMessage)
+        public bool Delete(OrderObject orderObject, out string errorMessaage)
         {
-            bool exists = this._DbContext.Orders.Any(user => user.ID == userID);
+            OrderEntity? orderToDelete = this._DbContext.Orders.Find(orderObject.ID);
 
-            if (!exists)
+            if (orderToDelete == null)
             {
-                errorMessage = $"user with ID {userID} has no orders";
-                return null;
-            }
-
-            List<OrderEntity> orderPositions = this._DbContext.Orders
-                .AsNoTracking()
-                .Where(order => order.UserID == userID)
-                .OrderByDescending(ID => ID)
-                .ToList();
-
-            errorMessage = String.Empty;
-            return orderPositions;
-        }
-        */
-
-        /*
-        public List<Guid>? GetAllOrderIDsByUserID(Guid userID, out string errorMessage)
-        {
-            bool exists = this._DbContext.Orders.Any(user => user.ID == userID);
-
-            if (!exists)
-            {
-                errorMessage = $"user with ID {userID} has no orders";
-                return null;
-            }
-
-            List<Guid> orderIDs = this._DbContext.Orders
-                .AsNoTracking()
-                .Where(order => order.UserID == userID)
-                .Select(order => order.OrderID)
-                .Distinct()
-                .ToList();
-
-            errorMessage = String.Empty;
-            return orderIDs;
-        }
-
-        public List<OrderEntity>? GetOrderByID(Guid orderID, out string errorMessage)
-        {
-            bool exists = this._DbContext.Orders.Any(order => order.OrderID == orderID);
-
-            if (!exists)
-            {
-                errorMessage = $"no order with ID {orderID} exests";
-                return null;
-            }
-
-            List<OrderEntity> orders = this._DbContext.Orders
-                .AsNoTracking()
-                .Where(order => order.OrderID == orderID)
-                .ToList();
-
-            errorMessage = String.Empty;
-            return orders;
-        }
-
-        public bool Create(Guid userID, Dictionary<Guid, int> dishAmounts, out string errorMessage)
-        {
-            bool existsUser = this._DbContext.Users.Any(user => user.ID == userID);
-
-            if (!existsUser)
-            {
-                errorMessage = $"no user with ID {userID} exests";
+                errorMessaage = $"no order with ID {orderObject.ID} exists";
                 return false;
             }
 
-            Guid orderID = Guid.NewGuid();
+            UserEntity? user = this._DbContext.Users.Find(orderObject.UserID);
 
-            foreach (KeyValuePair<Guid, int> dishAmount in dishAmounts)
+            if (user == null)
             {
-                Guid dishID = dishAmount.Key;
-                int amount = dishAmount.Value;
-                bool existsDish = this._DbContext.Dishes.Any(dish => dish.ID == dishID);
-
-                if (!existsDish)
-                {
-                    errorMessage = $"no dish with ID {dishID} exists";
-                    return false;
-                }
-
-                OrderEntity order = new OrderEntity();
-                order.ID = Guid.NewGuid();
-                order.OrderID = orderID;
-                order.UserID = userID;
-                order.DishID = dishID;
-                order.Amount = amount;
-                order.User = null;
-                order.Dish = null;
-
-                this._DbContext.Orders.Add(order);
-            }
-
-            this._DbContext.SaveChanges();
-
-            errorMessage = String.Empty;
-            return true;
-        }
-
-        public bool Delete(Guid orderID, out string errorMessage)
-        {
-            bool exists = this._DbContext.Orders.Any(order => order.OrderID == orderID);
-
-            if (!exists)
-            {
-                errorMessage = $"no order with ID {orderID} exists";
+                errorMessaage = $"no user with ID {orderObject.UserID} exists";
                 return false;
             }
 
-            errorMessage = String.Empty;
-            this._DbContext.Orders
-                .Where(order => order.ID == orderID)
-                .ExecuteDelete();
+            if (user.Type != UserTypes.Staff)
+            {
+                errorMessaage = $"user of type {user.Type} can not delete orders";
+                return false;
+            }
 
+            if (user.Password != orderObject.UserPassword)
+            {
+                errorMessaage = "incorrect password";
+                return false;
+            }
+
+            errorMessaage = string.Empty;
+            this._DbContext.Orders.Where(order => order.ID == orderToDelete.ID).ExecuteDelete();
+            this._DbContext.OrderPositions.Where(orderPosition => orderPosition.OrderID == orderToDelete.ID).ExecuteDelete();
             return true;
         }
-        */
     }
 }

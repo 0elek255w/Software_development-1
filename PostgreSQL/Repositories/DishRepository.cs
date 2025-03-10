@@ -12,6 +12,11 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
+        public bool Exists(Guid dishID)
+        {
+            return this._DbContext.Dishes.Any(dish => dish.ID == dishID);
+        }
+
         public List<DishEntity> GetAllDishes()
         {
             List<DishEntity> dishes = this._DbContext.Dishes
