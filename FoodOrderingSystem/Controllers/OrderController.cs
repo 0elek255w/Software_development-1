@@ -38,6 +38,21 @@ public class OrderController : Controller
         return Created();
     }
 
+    [HttpPost("GetAllOrderIDs")]
+    public ActionResult<List<Guid>> GetAllOrders(
+        [FromBody] OrderObject order
+    ) {
+        if (order.UserPassword == null)
+            return BadRequest("password ID is null");
+
+        List<Guid>? allOrderIDs = this.DbOrder.GetAllOrderIDsStaff(order.UserID, order.UserPassword, out string errorMessage);
+
+        if (allOrderIDs == null)
+            return BadRequest(errorMessage);
+
+        return Ok(allOrderIDs);
+    }
+
     [HttpPost("GetOrderByID")]
     public ActionResult<OrderObject> Get(
         [FromBody] OrderObject order
@@ -50,22 +65,26 @@ public class OrderController : Controller
         if (orderToReturn == null)
             return BadRequest(errorMessage);
 
+        order.UserPassword = null;
         return Ok(orderToReturn);
     }
 
-    //[HttpGet("GetOrderIDsByUserID")]
-    //public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
-    //    [FromForm] Guid userID
-    //) {
-    //    List<Guid>? orderIDs = this.DbOrder.GetAllOrderIDsByUserID(userID, out string errorMessage);
+    [HttpPost("GetOrderIDsByUserID")]
+    public ActionResult<List<Guid>> GetAllOrderIDsByUserID(
+        [FromBody] OrderObject order
+    ) {
+        if (order.UserPassword == null)
+            return BadRequest("password is null");
 
-    //    if (orderIDs == null)
-    //        return BadRequest(errorMessage);
+        List<Guid>? orderIDs = this.DbOrder.GetOrderIDs(order.UserID, order.UserPassword, out string errorMessage);
 
-    //    return Ok(orderIDs);
-    //}
+        if (orderIDs == null)
+            return BadRequest(errorMessage);
 
-    [HttpDelete]
+        return orderIDs;
+    }
+
+    [HttpDelete("DeleteOrderByID")]
     public ActionResult Delete(
         [FromBody] OrderObject order
     ) {
@@ -80,6 +99,7 @@ public class OrderController : Controller
         if (!isValid)
             return BadRequest(errorMessage);
 
+        order.UserPassword = null;
         return Ok();
     }
 }

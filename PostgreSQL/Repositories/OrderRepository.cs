@@ -13,6 +13,61 @@ namespace PostgreSQL.Repositories
             _DbContext = dbContext;
         }
 
+        public List<Guid>? GetAllOrderIDsStaff(Guid userID, string userPassword, out string errorMessage)
+        {
+            UserEntity? user = this._DbContext.Users.Find(userID);
+
+            if (user == null)
+            {
+                errorMessage = $"no user with ID {userID} exists";
+                return null;
+            }
+
+            if (user.Type != UserTypes.Staff)
+            {
+                errorMessage = $"user of type {user.Type} can not access all orders";
+                return null;
+            }
+
+            if (user.Password != userPassword)
+            {
+                errorMessage = "incorrect password";
+                return null;
+            }
+
+            List<Guid> orderIDs = this._DbContext.Orders
+                .AsNoTracking()
+                .Select(order => order.ID)
+                .ToList();
+            errorMessage = string.Empty;
+            return orderIDs;
+        }
+
+        public List<Guid>? GetOrderIDs(Guid userID, string userPassword, out string errorMessage)
+        {
+            UserEntity? user = this._DbContext.Users.Find(userID);
+
+            if (user == null)
+            {
+                errorMessage = $"no user with ID {userID} exists";
+                return null;
+            }
+
+            if (user.Password != userPassword)
+            {
+                errorMessage = "incorrect password";
+                return null;
+            }
+
+            List<Guid> orderIDs = this._DbContext.Orders
+                .AsNoTracking()
+                .Where(order => order.UserID == userID)
+                .Select(order => order.ID)
+                .ToList();
+            errorMessage = string.Empty;
+            return orderIDs;
+        }
+
         public OrderObject? Get(OrderObject order, out string errorMessage)
         {
             OrderEntity? orderEntity = this._DbContext.Orders.Find(order.ID);

@@ -24,37 +24,6 @@ namespace PostgreSQL.Repositories
             return this._DbContext.Users.Any(user => user.ID == ID);
         }
 
-        /*
-        public bool IsValid(string Email, string? password)
-        {
-            if (password == null)
-                return this._DbContext.Users.Any(user => user.Email == Email);
-
-            UserEntity user = this._DbContext.Users.Where(user => user.Email == Email).First();
-
-            if (user.Password == password)
-                return true;
-
-            return false;
-        }
-
-        public bool IsValid(Guid ID, string? password)
-        {
-            UserEntity? user = this._DbContext.Users.Find(ID);
-
-            if (password == null)
-                return user == null;
-
-            if (user == null)
-                return false;
-
-            if (user.Password == password)
-                return true;
-
-            return false;
-        }
-        */
-
         public UserEntity? Get(string email, string password, out string errorMessage)
         {
             if (!this.Exists(email))

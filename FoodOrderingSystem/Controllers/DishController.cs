@@ -36,7 +36,7 @@ public class DishController : ControllerBase
         return Ok(dish);
     }
 
-    [HttpPost]
+    [HttpPost("CreateDish")]
     public ActionResult Create(
         [FromBody] DishObject dishObject
     ) {

@@ -50,7 +50,7 @@ public class UserController : ControllerBase
         return Created();
     }
 
-    [HttpPut]
+    [HttpPut("UpdateUser")]
     public ActionResult<bool> Update(
         [FromBody] UserObject userRecieve
     ) {
@@ -65,7 +65,7 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete]
+    [HttpDelete("DeleteUser")]
     public ActionResult<bool> Delete(
         [FromBody] UserObject userRecieve
     ) {
