@@ -8,4 +8,3 @@
         public Dictionary<Guid, int>? Dishes { get; set; } = new Dictionary<Guid, int>();
     }
 }
-

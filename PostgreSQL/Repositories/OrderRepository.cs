@@ -68,6 +68,50 @@ namespace PostgreSQL.Repositories
             return orderIDs;
         }
 
+        public OrderObject? GetOrderStaff(OrderObject order, out string errorMessage)
+        {
+            UserEntity? staff = this._DbContext.Users.Find(order.UserID);
+
+            if (staff == null)
+            {
+                errorMessage = $"no user with ID {order.UserID} exists";
+                return null;
+            }
+
+            if (staff.Type != UserTypes.Staff)
+            {
+                errorMessage = $"user of type {staff.Type} can not access this order";
+                return null;
+            }
+
+            if (staff.Password == order.UserPassword)
+            {
+                errorMessage = "incorrect password";
+                return null;
+            }
+
+            OrderObject orderToReturn = new OrderObject()
+            {
+                ID = order.ID,
+                UserID = staff.ID,
+                UserPassword = null,
+                Dishes = new Dictionary<Guid, int>()
+            };
+
+            List<OrderPositionEntity> positions = this._DbContext.OrderPositions
+                .AsNoTracking()
+                .Where(position => position.OrderID == order.ID)
+                .ToList();
+
+            foreach (OrderPositionEntity positionToConvert in positions)
+            {
+                orderToReturn.Dishes.Add(positionToConvert.DishID, positionToConvert.Amount);
+            }
+
+            errorMessage = string.Empty;
+            return orderToReturn;
+        }
+
         public OrderObject? Get(OrderObject order, out string errorMessage)
         {
             OrderEntity? orderEntity = this._DbContext.Orders.Find(order.ID);
@@ -86,7 +130,7 @@ namespace PostgreSQL.Repositories
                 return null;
             }
 
-            if (user.Password == order.UserPassword)
+            if (user.Password != order.UserPassword)
             {
                 errorMessage = $"incorrect password";
                 return null;

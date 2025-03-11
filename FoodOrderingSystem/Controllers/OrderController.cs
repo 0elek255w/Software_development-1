@@ -53,6 +53,24 @@ public class OrderController : Controller
         return Ok(allOrderIDs);
     }
 
+    [HttpPost("GetOrderByIDStaff")]
+    public ActionResult<OrderObject> GetOrderStaff(
+        [FromBody] OrderObject order
+    ) {
+        if (order.ID == null)
+            return BadRequest("order ID is null");
+
+        if (order.UserPassword == null)
+            return BadRequest("staff ID is null");
+
+        OrderObject? orderToReturn = this.DbOrder.GetOrderStaff(order, out string errorMessage);
+
+        if (orderToReturn == null)
+            return BadRequest(errorMessage);
+
+        return orderToReturn;
+    }
+
     [HttpPost("GetOrderByID")]
     public ActionResult<OrderObject> Get(
         [FromBody] OrderObject order
