@@ -104,15 +104,23 @@ namespace PostgreSQL.Repositories
 
         public bool Delete(string email, string password, out string errorMessage)
         {
-            if (!this.Exists(email))
+            UserEntity? userToDelete = this._DbContext.Users
+                .Where(user => user.Email == email)
+                .FirstOrDefault();
+
+            if (userToDelete == null)
             {
-                errorMessage = $"no user with email {email}";
+                errorMessage = $"no user with email {email} exists";
                 return false;
             }
 
-            UserEntity userToDelete = this._DbContext.Users
-                .Where(user => user.Email == email)
-                .First();
+            bool hasOrders = this._DbContext.Orders.Any(order => order.UserID == userToDelete.ID);
+
+            if (hasOrders)
+            {
+                errorMessage = "user has active orders";
+                return false;
+            }
 
             if (userToDelete.Password != password)
             {
@@ -121,7 +129,7 @@ namespace PostgreSQL.Repositories
             }
 
             this._DbContext.Users
-                .Where(user => (user.ID == userToDelete.ID))
+                .Where(user => user.ID == userToDelete.ID)
                 .ExecuteDelete();
 
             errorMessage = string.Empty;

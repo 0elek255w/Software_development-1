@@ -70,6 +70,14 @@ namespace PostgreSQL.Repositories
 
         public OrderObject? GetOrderStaff(OrderObject order, out string errorMessage)
         {
+            bool existsOrder = this._DbContext.Orders.Any(orderToCheck => orderToCheck.ID == order.ID);
+
+            if (!existsOrder)
+            {
+                errorMessage = $"no order with ID {order.ID} exists";
+                return null;
+            }
+
             UserEntity? staff = this._DbContext.Users.Find(order.UserID);
 
             if (staff == null)
@@ -84,7 +92,7 @@ namespace PostgreSQL.Repositories
                 return null;
             }
 
-            if (staff.Password == order.UserPassword)
+            if (staff.Password != order.UserPassword)
             {
                 errorMessage = "incorrect password";
                 return null;

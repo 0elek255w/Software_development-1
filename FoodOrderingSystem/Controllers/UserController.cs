@@ -28,7 +28,7 @@ public class UserController : ControllerBase
         if (user == null)
             return BadRequest(errorMessage); // replace with Forbid()
 
-        UserObject userSend = new UserObject(user.ID, user.Email, null, user.Name, user.Email, user.Type);
+        UserObject userSend = new UserObject(user.ID, user.Email, null, user.Name, user.Image, user.Type);
         return Ok(userSend);
     }
 
@@ -75,8 +75,8 @@ public class UserController : ControllerBase
         bool isValid = this.DbUser.Delete(userRecieve.Email, userRecieve.Password, out string errorMessage);
 
         if (!isValid)
-            BadRequest(errorMessage); // replace with Forbid()
+            return BadRequest(errorMessage); // replace with Forbid()
 
-        return Ok();
+        return Ok(isValid);
     }
 }

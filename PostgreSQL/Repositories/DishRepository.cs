@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PostgreSQL.Tables;
+using PostgreSQL.Objects;
 
 namespace PostgreSQL.Repositories
 {
@@ -10,11 +11,6 @@ namespace PostgreSQL.Repositories
         public DishRepository(DbContextFOS dbContext)
         {
             _DbContext = dbContext;
-        }
-
-        public bool Exists(Guid dishID)
-        {
-            return this._DbContext.Dishes.Any(dish => dish.ID == dishID);
         }
 
         public List<DishEntity> GetAllDishes()
@@ -46,6 +42,51 @@ namespace PostgreSQL.Repositories
             dish.ID = Guid.NewGuid();
             this._DbContext.Dishes.Add(dish);
             this._DbContext.SaveChanges();
+        }
+
+        public bool Delete(OrderObject dishToDelete, out string errorMessage)
+        {
+            UserEntity? staff = this._DbContext.Users.Find(dishToDelete.UserID);
+
+            if (staff == null)
+            {
+                errorMessage = $"no user with ID {dishToDelete.UserID} exists";
+                return false;
+            }
+
+            if (staff.Type != UserTypes.Staff)
+            {
+                errorMessage = $"user of type {staff.Type} can not delete dishes";
+                return false;
+            }
+
+            if (staff.Password != dishToDelete.UserPassword)
+            {
+                errorMessage = "incorrect password";
+                return false;
+            }
+
+            bool exists = this._DbContext.Dishes.Any(dish => dish.ID == dish.ID);
+
+            if (!exists)
+            {
+                errorMessage = $"no dish with ID {dishToDelete.ID} exists";
+                return false;
+            }
+
+            bool isContained = this._DbContext.OrderPositions.Any(orderPosition => orderPosition.DishID == dishToDelete.ID);
+
+            if (isContained)
+            {
+                errorMessage = $"this dish is contained in orders";
+                return false;
+            }
+
+            errorMessage = string.Empty;
+            this._DbContext.Dishes
+                .Where(dish => dish.ID == dishToDelete.ID)
+                .ExecuteDelete();
+            return true;
         }
     }
 }

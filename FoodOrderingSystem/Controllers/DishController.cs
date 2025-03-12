@@ -64,4 +64,22 @@ public class DishController : ControllerBase
 
         return Created();
     }
+
+    [HttpDelete("DeleteDish")]
+    public ActionResult Delete(
+        [FromBody] OrderObject dishObject
+    ) {
+        if (dishObject.ID == null)
+            return BadRequest("ID is null");
+
+        if (dishObject.UserPassword == null)
+            return BadRequest("password is null");
+
+        bool isValid = this.DbDish.Delete(dishObject, out string errorMessage);
+
+        if (!isValid)
+            return BadRequest(errorMessage);
+
+        return Ok(isValid);
+    }
 }
